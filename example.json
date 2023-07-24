@@ -24,22 +24,22 @@
           "default": {
             "url": "https://i.ytimg.com/vi/ZwKsMpW50wQ/default.jpg",
             "width": 120,
-            "height": 90
+            "height": 90,
+            "medium": {
+              "url": "https://i.ytimg.com/vi/ZwKsMpW50wQ/mqdefault.jpg",
+              "width": 320,
+              "height": 180
+            },
+            "high": {
+              "url": "https://i.ytimg.com/vi/ZwKsMpW50wQ/hqdefault.jpg",
+              "width": 480,
+              "height": 360
+            }
           },
-          "medium": {
-            "url": "https://i.ytimg.com/vi/ZwKsMpW50wQ/mqdefault.jpg",
-            "width": 320,
-            "height": 180
-          },
-          "high": {
-            "url": "https://i.ytimg.com/vi/ZwKsMpW50wQ/hqdefault.jpg",
-            "width": 480,
-            "height": 360
-          }
-        },
-        "channelTitle": "hehaskillaura_",
-        "liveBroadcastContent": "none",
-        "publishTime": "2023-07-20T23:37:09Z"
+          "channelTitle": "hehaskillaura_",
+          "liveBroadcastContent": "none",
+          "publishTime": "2023-07-20T23:37:09Z"
+        }
       }
     },
     {
