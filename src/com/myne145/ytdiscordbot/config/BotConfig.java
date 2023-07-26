@@ -12,13 +12,14 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 
 public class BotConfig {
-    private static String API_KEY;
+    private static String apiKey;
     private static ArrayList<YoutubeChannel> youtubeChannels = new ArrayList<>();
     private final static File CONFIG_FILE = new File("config.json");
     private static String notificationsChannelID;
     private static String ownerUserId;
     private static String newVideoMessage;
     private static String livestreamMessage;
+    private static String token;
 
     public static String readFileString(File fileToRead) throws IOException {
         StringBuilder fileToReadReader = new StringBuilder();
@@ -30,18 +31,21 @@ public class BotConfig {
 
     public static void createConfig() throws IOException {
         JSONObject config = new JSONObject(readFileString(CONFIG_FILE));
-        API_KEY = config.getString("api_key");
+        token = config.getString("token");
+        ownerUserId = config.getString("owner");
+        apiKey = config.getString("youtube_api_key");
         notificationsChannelID = config.getString("notifications_channel_id");
-        ownerUserId = config.getString("owner_user_id");
+
+        JSONArray channels = new JSONArray(config.getJSONArray("youtube_channels"));
+        for (int i = 0; i < channels.length(); i++) {
+            BotConfig.youtubeChannels.add(new YoutubeChannel(channels.getJSONObject(i).getString("id"), channels.getJSONObject(i).getString("name")));
+        }
+
         JSONObject messages = config.getJSONObject("messages");
         newVideoMessage = messages.getString("new_video");
         livestreamMessage = messages.getString("livestream");
 
-        JSONArray channels = new JSONArray(config.getJSONArray("channels"));
-//        System.out.println(channels.toString(4));
-        for (int i = 0; i < channels.length(); i++) {
-            BotConfig.youtubeChannels.add(new YoutubeChannel(channels.getJSONObject(i).getString("id"), channels.getJSONObject(i).getString("name")));
-        }
+
     }
 
     public static void updateNotificationChannel(TextChannel channel) throws IOException {
@@ -55,7 +59,7 @@ public class BotConfig {
     }
 
     public static String getApiKey() {
-        return API_KEY;
+        return apiKey;
     }
 
     public static ArrayList<YoutubeChannel> getChannels() {
@@ -71,10 +75,14 @@ public class BotConfig {
     }
 
     public static String getNewVideoMessage(YoutubeChannel youtubeChannel, String link) {
-        return newVideoMessage.replace("$CHANNEL", youtubeChannel.getName()).replace("$VIDEO_LINK", link);
+        return newVideoMessage.replace("$CHANNEL", youtubeChannel.name()).replace("$VIDEO_LINK", link);
     }
 
     public static String getLivestreamMessage(YoutubeChannel youtubeChannel, String link) {
-        return livestreamMessage.replace("$CHANNEL", youtubeChannel.getName()).replace("$VIDEO_LINK", link);
+        return livestreamMessage.replace("$CHANNEL", youtubeChannel.name()).replace("$VIDEO_LINK", link);
+    }
+
+    public static String getToken() {
+        return token;
     }
 }

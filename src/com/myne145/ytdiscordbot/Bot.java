@@ -4,7 +4,6 @@ package com.myne145.ytdiscordbot;
 import com.myne145.ytdiscordbot.config.BotConfig;
 import com.myne145.ytdiscordbot.youtube.YoutubeChannel;
 import com.myne145.ytdiscordbot.youtube.Checker;
-import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -61,6 +60,7 @@ public class Bot extends ListenerAdapter {
         switch (event.getName()) {
             case "print-debug-info" -> {
                 event.deferReply().queue();
+                selectedDiscordTextChannel = jda.getTextChannelById(BotConfig.getNotificationsChannelID());
                 StringBuilder threadsStates = new StringBuilder();
                 for (Thread thread : ytChannelsThreads)
                     threadsStates.append(thread.getName()).append("\t").append(thread.getState()).append("\n");
@@ -101,7 +101,7 @@ public class Bot extends ListenerAdapter {
 
     public static void main(String[] args) throws IOException, LoginException {
         BotConfig.createConfig();
-        jda = JDABuilder.createDefault("MTEzMjY3MTk4NzEzMTYxNzM1MA.GrYNr3.GOxydI5yiFri1gXdQUZQN0mOX6pDzrBerclXyA")
+        jda = JDABuilder.createDefault(BotConfig.getToken())
                 .enableIntents(GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_MEMBERS)
                 .addEventListeners(new Bot())
                 .build();
@@ -112,9 +112,6 @@ public class Bot extends ListenerAdapter {
                         .addOption(OptionType.CHANNEL, "channel", "Channel you want the notifications to be in.", true),
                 Commands.slash("force-video-check", "Forces new videos check.")
         ).queue();
-//        System.out.println(BotConfig.getNotificationsChannelID());
-//
-//        System.out.println(selectedChannel);
 
         for(YoutubeChannel youtubeChannel : BotConfig.getChannels()) {
             ytChannelsThreads.add(new Thread(() -> newVideoCheckLoop(youtubeChannel)));
