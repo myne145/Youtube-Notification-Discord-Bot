@@ -20,7 +20,6 @@ public class Checker {
     }
 
     public static boolean hasNewVideos(YoutubeChannel youtubeChannel) throws URISyntaxException, IOException {
-        String temp = "UChs0pSaEoNLV4mevBFGaoKA";
 //        URL requestURL =
 //                new URI("https://www.googleapis.com/youtube/v3/search?key=" +
 //                        BotConfig.API_KEY + "&channelId=" + BotConfig.CHANNELS.get(0).getId() + "&part=snippet,id&order=date&maxResults=20").toURL();
@@ -35,7 +34,7 @@ public class Checker {
 //            }
 //        }
 //        System.out.println(result);
-        String result = readFileString(new File("example.json"));
+        String result = readFileString(new File("exampleLive.json"));
 
         JSONObject response = new JSONObject(result);
         JSONArray videos = new JSONArray(response.getJSONArray("items"));
@@ -44,11 +43,8 @@ public class Checker {
         if(lastVideoFromPreviousCheck == null) {
             lastVideoFromPreviousCheck = lastVideoFromCurrentCheck;
         }
-        boolean areVideosTheSame = false;
-        if(lastVideoFromCurrentCheck.getJSONObject("id").getString("videoId")
-                .equals(lastVideoFromPreviousCheck.getJSONObject("id").getString("videoId"))) {
-            areVideosTheSame = true;
-        }
+        boolean areVideosTheSame = lastVideoFromCurrentCheck.getJSONObject("id").getString("videoId")
+                .equals(lastVideoFromPreviousCheck.getJSONObject("id").getString("videoId"));
 
         lastVideoFromPreviousCheck = lastVideoFromCurrentCheck;
 //        System.out.println(areVideosTheSame);
@@ -57,5 +53,13 @@ public class Checker {
 
     public static String getLatestUploadedVideoId() {
         return lastVideoFromPreviousCheck.getJSONObject("id").getString("videoId");
+    }
+
+    public static boolean isLiveStream() {
+        if(lastVideoFromPreviousCheck.getJSONObject("snippet").has("liveBroadcastContent")) {
+            String type = lastVideoFromPreviousCheck.getJSONObject("snippet").getString("liveBroadcastContent");
+            return type.equals("live");
+        }
+        return false;
     }
 }
