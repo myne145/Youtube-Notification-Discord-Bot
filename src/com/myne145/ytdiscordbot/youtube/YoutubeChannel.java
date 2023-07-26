@@ -1,10 +1,10 @@
 package com.myne145.ytdiscordbot.youtube;
 
-public class Channel {
+public class YoutubeChannel {
     private final String id;
     private final String name;
 
-    public Channel(String id, String name) {
+    public YoutubeChannel(String id, String name) {
         this.id = id;
         this.name = name;
     }

@@ -19,7 +19,8 @@ public class Checker {
         return fileToReadReader.toString();
     }
 
-    public static boolean hasNewVideos(Channel channel) throws URISyntaxException, IOException {
+    public static boolean hasNewVideos(YoutubeChannel youtubeChannel) throws URISyntaxException, IOException {
+        String temp = "UChs0pSaEoNLV4mevBFGaoKA";
 //        URL requestURL =
 //                new URI("https://www.googleapis.com/youtube/v3/search?key=" +
 //                        BotConfig.API_KEY + "&channelId=" + BotConfig.CHANNELS.get(0).getId() + "&part=snippet,id&order=date&maxResults=20").toURL();
@@ -51,6 +52,10 @@ public class Checker {
 
         lastVideoFromPreviousCheck = lastVideoFromCurrentCheck;
 //        System.out.println(areVideosTheSame);
-        return areVideosTheSame;
+        return !areVideosTheSame;
+    }
+
+    public static String getLatestUploadedVideoId() {
+        return lastVideoFromPreviousCheck.getJSONObject("id").getString("videoId");
     }
 }

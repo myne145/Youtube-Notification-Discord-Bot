@@ -1,6 +1,6 @@
 package com.myne145.ytdiscordbot.config;
 
-import com.myne145.ytdiscordbot.youtube.Channel;
+import com.myne145.ytdiscordbot.youtube.YoutubeChannel;
 import net.dv8tion.jda.api.entities.TextChannel;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -13,7 +13,7 @@ import java.util.ArrayList;
 
 public class BotConfig {
     private static String API_KEY;
-    private static ArrayList<Channel> channels = new ArrayList<>();
+    private static ArrayList<YoutubeChannel> youtubeChannels = new ArrayList<>();
     private final static File CONFIG_FILE = new File("config.json");
     private static String notificationsChannelID;
 
@@ -32,13 +32,14 @@ public class BotConfig {
         JSONArray channels = new JSONArray(config.getJSONArray("channels"));
 //        System.out.println(channels.toString(4));
         for(int i = 0; i < channels.length(); i++) {
-            BotConfig.channels.add(new Channel(channels.getJSONObject(i).getString("id"), channels.getJSONObject(i).getString("name")));
+            BotConfig.youtubeChannels.add(new YoutubeChannel(channels.getJSONObject(i).getString("id"), channels.getJSONObject(i).getString("name")));
         }
     }
 
     public static void updateNotificationChannel(TextChannel channel) throws IOException {
         JSONObject object = new JSONObject(readFileString(CONFIG_FILE));
         object.put(channel.getId(), "notifications_channel_id");
+        notificationsChannelID = channel.getId();
 
         try(FileWriter writer = new FileWriter(CONFIG_FILE)) {
             writer.write(object.toString(4));
@@ -49,8 +50,8 @@ public class BotConfig {
         return API_KEY;
     }
 
-    public static ArrayList<Channel> getChannels() {
-        return channels;
+    public static ArrayList<YoutubeChannel> getChannels() {
+        return youtubeChannels;
     }
 
     public static String getNotificationsChannelID() {
