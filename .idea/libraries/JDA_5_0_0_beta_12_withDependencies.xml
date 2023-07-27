@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="JDA-5.0.0-beta.12-withDependencies">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/JDA-5.0.0-beta.12-withDependencies.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

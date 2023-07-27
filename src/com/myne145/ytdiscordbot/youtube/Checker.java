@@ -11,6 +11,12 @@ import java.nio.file.Files;
 public class Checker {
     private static JSONObject lastVideoFromPreviousCheck;
 
+    /**
+     * Reads content of the specified file.
+     * @param fileToRead file you want to read
+     * @return content of the file as String
+     * @throws IOException
+     */
     public static String readFileString(File fileToRead) throws IOException {
         StringBuilder fileToReadReader = new StringBuilder();
         for(String fileLine : Files.readAllLines(fileToRead.toPath())) {
@@ -19,6 +25,13 @@ public class Checker {
         return fileToReadReader.toString();
     }
 
+    /**
+     * Checks for new videos on a YouTube channel.
+     * @param youtubeChannel YouTube channel you want to check videos on.
+     * @return if the channel has new videos.
+     * @throws URISyntaxException
+     * @throws IOException
+     */
     public static boolean hasNewVideos(YoutubeChannel youtubeChannel) throws URISyntaxException, IOException {
 //        URL requestURL =
 //                new URI("https://www.googleapis.com/youtube/v3/search?key=" +
@@ -51,10 +64,18 @@ public class Checker {
         return !areVideosTheSame;
     }
 
+    /**
+     * If there was a new video uploaded, gets its YouTube ID.
+     * @return latest video's YouTube ID
+     */
     public static String getLatestUploadedVideoId() {
         return lastVideoFromPreviousCheck.getJSONObject("id").getString("videoId");
     }
 
+    /**
+     * Determines whether the new video is a livestream.
+     * @return is video a livestream.
+     */
     public static boolean isLiveStream() {
         if(lastVideoFromPreviousCheck.getJSONObject("snippet").has("liveBroadcastContent")) {
             String type = lastVideoFromPreviousCheck.getJSONObject("snippet").getString("liveBroadcastContent");
