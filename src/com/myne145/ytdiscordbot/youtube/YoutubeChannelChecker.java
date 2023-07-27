@@ -11,11 +11,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.*;
 
-public class Checker {
+public class YoutubeChannelChecker {
     private JSONObject lastVideoFromPreviousCheck;
     private final YoutubeChannel channelToCheck;
 
-    public Checker(YoutubeChannel channelToCheck) {
+    public YoutubeChannelChecker(YoutubeChannel channelToCheck) {
         this.channelToCheck = channelToCheck;
     }
 
@@ -23,7 +23,7 @@ public class Checker {
      * Determines whether the new video is a livestream.
      * @return is video a livestream.
      */
-    private boolean isLiveStream() {
+    public boolean isLiveStream() {
         if(lastVideoFromPreviousCheck.getJSONObject("snippet").has("liveBroadcastContent")) {
             String type = lastVideoFromPreviousCheck.getJSONObject("snippet").getString("liveBroadcastContent");
             return type.equals("live");
@@ -37,7 +37,7 @@ public class Checker {
      * @throws URISyntaxException
      * @throws IOException
      */
-    private boolean hasNewVideos() throws URISyntaxException, IOException {
+    public boolean hasNewVideos() throws URISyntaxException, IOException {
         URL requestURL =
                 new URI("https://www.googleapis.com/youtube/v3/search?key=" +
                         BotConfig.getApiKey() + "&channelId=" + channelToCheck.id() + "&part=snippet,id&order=date&maxResults=20").toURL();
@@ -75,7 +75,6 @@ public class Checker {
         while(true) {
             try {
                 boolean tempNewVideos = hasNewVideos();
-                System.out.println(getYoutubeChannel().name() + "\t" + tempNewVideos);
                 if(tempNewVideos) {
                     Bot.broadcastNewVideoMessage(isLiveStream(), this);
                 }

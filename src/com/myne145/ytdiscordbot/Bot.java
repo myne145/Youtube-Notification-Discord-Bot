@@ -3,7 +3,7 @@ package com.myne145.ytdiscordbot;
 
 import com.myne145.ytdiscordbot.config.BotConfig;
 import com.myne145.ytdiscordbot.youtube.YoutubeChannel;
-import com.myne145.ytdiscordbot.youtube.Checker;
+import com.myne145.ytdiscordbot.youtube.YoutubeChannelChecker;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -14,7 +14,6 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MarkdownUtil;
 
-import javax.security.auth.login.LoginException;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.net.URISyntaxException;
@@ -23,6 +22,7 @@ import java.util.ArrayList;
 public class Bot extends ListenerAdapter {
     private static TextChannel selectedDiscordTextChannel;
     private static final ArrayList<Thread> ytChannelsThreads = new ArrayList<>();
+    private static final ArrayList<YoutubeChannelChecker> youtubeChannelsCheckers = new ArrayList<>();
     private static JDA jda;
 
 
@@ -35,15 +35,15 @@ public class Bot extends ListenerAdapter {
         return userId.equals(BotConfig.getOwnerUserId());
     }
 
-    public static void broadcastNewVideoMessage(boolean isLiveStream, Checker checker) {
+    public static void broadcastNewVideoMessage(boolean isLiveStream, YoutubeChannelChecker youtubeChannelChecker) {
         selectedDiscordTextChannel = jda.getTextChannelById(BotConfig.getNotificationsChannelID());
         if(selectedDiscordTextChannel != null) {
             if(!isLiveStream) {
-                selectedDiscordTextChannel.sendMessage(BotConfig.getNewVideoMessage(checker.getYoutubeChannel(),
-                        "https://www.youtube.com/watch?v=" + checker.getLatestUploadedVideoId())).queue();
+                selectedDiscordTextChannel.sendMessage(BotConfig.getNewVideoMessage(youtubeChannelChecker.getYoutubeChannel(),
+                        "https://www.youtube.com/watch?v=" + youtubeChannelChecker.getLatestUploadedVideoId())).queue();
             } else {
-                selectedDiscordTextChannel.sendMessage(BotConfig.getLivestreamMessage(checker.getYoutubeChannel(),
-                        "https://www.youtube.com/watch?v=" + checker.getLatestUploadedVideoId())).queue();
+                selectedDiscordTextChannel.sendMessage(BotConfig.getLivestreamMessage(youtubeChannelChecker.getYoutubeChannel(),
+                        "https://www.youtube.com/watch?v=" + youtubeChannelChecker.getLatestUploadedVideoId())).queue();
             }
         }
     }
@@ -87,14 +87,27 @@ public class Bot extends ListenerAdapter {
 
             }
             case "force-video-check" -> {
-                event.deferReply().queue();
-                if(isOwner(event.getUser().getId())) {
+                if(!isOwner(event.getUser().getId())) {
                     event.reply("You need to be the owner to execute that!").setEphemeral(true).queue();
                     return;
                 }
-
-//                for(YoutubeChannel youtubeChannel : BotConfig.getChannels())
-//                    checkForNewVideos(youtubeChannel);
+                boolean wereAnyVideosFound = false;
+                for(YoutubeChannelChecker checker : youtubeChannelsCheckers) {
+                    boolean hasNewVideos;
+                    try {
+                        hasNewVideos = checker.hasNewVideos();
+                    } catch (URISyntaxException | IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    if(hasNewVideos) {
+                        wereAnyVideosFound = true;
+                        broadcastNewVideoMessage(checker.isLiveStream(), checker);
+                    }
+                }
+                if(!wereAnyVideosFound)
+                    event.reply(MarkdownUtil.quoteBlock("No new videos found.\nNote: Spamming this command will deplete your API tokens, scheduled checks occur every 15 minutes.")).setEphemeral(true).queue();
+                else
+                    event.reply(MarkdownUtil.quoteBlock("New videos were found. \nNote: Spamming this command will deplete your API tokens, scheduled checks occur every 15 minutes.")).setEphemeral(true).queue();
 
             }
             case "help" -> {
@@ -124,7 +137,9 @@ public class Bot extends ListenerAdapter {
         ).queue();
 
         for(YoutubeChannel youtubeChannel : BotConfig.getChannels()) {
-            ytChannelsThreads.add(new Thread(() -> new Checker(youtubeChannel).checkForNewVideosInLoop()));
+            YoutubeChannelChecker youtubeChannelChecker = new YoutubeChannelChecker(youtubeChannel);
+            ytChannelsThreads.add(new Thread(youtubeChannelChecker::checkForNewVideosInLoop));
+            youtubeChannelsCheckers.add(youtubeChannelChecker);
         }
         for(Thread thread : ytChannelsThreads)
             thread.start();

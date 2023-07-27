@@ -54,8 +54,6 @@ public class BotConfig {
         JSONObject messages = config.getJSONObject("messages");
         newVideoMessage = messages.getString("new_video");
         livestreamMessage = messages.getString("livestream");
-
-
     }
 
     /**
