@@ -13,7 +13,7 @@ import java.util.ArrayList;
 
 public class BotConfig {
     private static String apiKey;
-    private static ArrayList<YoutubeChannel> youtubeChannels = new ArrayList<>();
+    private static final ArrayList<YoutubeChannel> youtubeChannels = new ArrayList<>();
     private final static File CONFIG_FILE = new File("config.json");
     private static String notificationsChannelID;
     private static String ownerUserId;
@@ -21,6 +21,12 @@ public class BotConfig {
     private static String livestreamMessage;
     private static String token;
 
+    /**
+     * Reads content of the specified file.
+     * @param fileToRead file you want to read
+     * @return content of the file as String
+     * @throws IOException
+     */
     public static String readFileString(File fileToRead) throws IOException {
         StringBuilder fileToReadReader = new StringBuilder();
         for(String fileLine : Files.readAllLines(fileToRead.toPath())) {
@@ -29,6 +35,10 @@ public class BotConfig {
         return fileToReadReader.toString();
     }
 
+    /**
+     * Initializes the config.json file.
+     * @throws IOException
+     */
     public static void createConfig() throws IOException {
         JSONObject config = new JSONObject(readFileString(CONFIG_FILE));
         token = config.getString("token");
@@ -48,6 +58,11 @@ public class BotConfig {
 
     }
 
+    /**
+     * Updates the Discord notifications channel and writes it to the config file.
+     * @param channel new notifications Discord channel
+     * @throws IOException
+     */
     public static void updateNotificationChannel(TextChannel channel) throws IOException {
         JSONObject object = new JSONObject(readFileString(CONFIG_FILE));
         object.put("notifications_channel_id", channel.getId());

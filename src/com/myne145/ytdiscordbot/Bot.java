@@ -4,10 +4,8 @@ package com.myne145.ytdiscordbot;
 import com.myne145.ytdiscordbot.config.BotConfig;
 import com.myne145.ytdiscordbot.youtube.YoutubeChannel;
 import com.myne145.ytdiscordbot.youtube.Checker;
-import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -27,43 +25,6 @@ public class Bot extends ListenerAdapter {
     private static final ArrayList<Thread> ytChannelsThreads = new ArrayList<>();
     private static JDA jda;
 
-    /**
-     * Checks for new videos on specified YouTube channel, and if there are sends the message to a Discord channel.
-     * @param youtubeChannel Youtube channel you want to check
-     * @return if the operation was successful
-     */
-    private static boolean checkForNewVideos(YoutubeChannel youtubeChannel) {
-        try {
-            selectedDiscordTextChannel = jda.getTextChannelById(BotConfig.getNotificationsChannelID());
-            boolean hasNewVideos = Checker.hasNewVideos(youtubeChannel);
-            System.out.println(hasNewVideos);
-            if(selectedDiscordTextChannel != null && hasNewVideos) {
-                if(!Checker.isLiveStream())
-                    selectedDiscordTextChannel.sendMessage(BotConfig.getNewVideoMessage(youtubeChannel, "https://www.youtube.com/watch?v=" + Checker.getLatestUploadedVideoId())).queue();
-                else
-                    selectedDiscordTextChannel.sendMessage(BotConfig.getLivestreamMessage(youtubeChannel, "https://www.youtube.com/watch?v=" + Checker.getLatestUploadedVideoId())).queue();
-            }
-
-        } catch (URISyntaxException | IOException e) {
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * Calls {@link #checkForNewVideos(YoutubeChannel)} in a loop, every 15 minutes.
-     * @param youtubeChannel Youtube channel you want to check
-     */
-    private static void newVideoCheckLoop(YoutubeChannel youtubeChannel) {
-        while(true) {
-            checkForNewVideos(youtubeChannel);
-            try {
-                Thread.sleep(1000 * 60 * 15); //sleep for 15 minutes
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
 
     /**
      * Determines whether the Discord user is the owner of the bot.
@@ -74,6 +35,19 @@ public class Bot extends ListenerAdapter {
         return userId.equals(BotConfig.getOwnerUserId());
     }
 
+    public static void broadcastNewVideoMessage(boolean isLiveStream, Checker checker) {
+        selectedDiscordTextChannel = jda.getTextChannelById(BotConfig.getNotificationsChannelID());
+        if(selectedDiscordTextChannel != null) {
+            if(!isLiveStream) {
+                selectedDiscordTextChannel.sendMessage(BotConfig.getNewVideoMessage(checker.getYoutubeChannel(),
+                        "https://www.youtube.com/watch?v=" + checker.getLatestUploadedVideoId())).queue();
+            } else {
+                selectedDiscordTextChannel.sendMessage(BotConfig.getLivestreamMessage(checker.getYoutubeChannel(),
+                        "https://www.youtube.com/watch?v=" + checker.getLatestUploadedVideoId())).queue();
+            }
+        }
+    }
+
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
         switch (event.getName()) {
@@ -81,16 +55,20 @@ public class Bot extends ListenerAdapter {
                 event.deferReply().queue();
                 selectedDiscordTextChannel = jda.getTextChannelById(BotConfig.getNotificationsChannelID());
                 StringBuilder threadsStates = new StringBuilder();
-                for (Thread thread : ytChannelsThreads)
+                for (Thread thread : ytChannelsThreads) {
                     threadsStates.append(thread.getName()).append("\t").append(thread.getState()).append("\n");
-                event.getHook().sendMessage("```threads:\t" + ytChannelsThreads.size() + "\n"
-                        + threadsStates + "\ndiscord notifications channel:\t" + selectedDiscordTextChannel.getId() +
-                        ", " + selectedDiscordTextChannel.getName() + ", " + selectedDiscordTextChannel.getGuild() + "\ntracked youtube channels:\t" + BotConfig.getChannels() + ", "
-                        + BotConfig.getChannels().size() + "\n\n" +
-                        "total RAM:\t" + Runtime.getRuntime().totalMemory() + "b\nfree RAM:\t" + Runtime.getRuntime().freeMemory() +
-                        "b\napprox JVM RAM usage:\t" + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) +
-                        "b\nOS:\t" + System.getProperty("os.name") + "\nJVM uptime:\t" +
-                        (ManagementFactory.getRuntimeMXBean().getUptime() / 1000L) + "s" + "```").queue();
+                }
+                   event.getHook().sendMessage("```System:\n" +
+                            "OS:\t" + System.getProperty("os.name") + "\n" +
+                            "total RAM:\t" + Runtime.getRuntime().totalMemory() +
+                            "b\nfree RAM:\t" + Runtime.getRuntime().freeMemory() +
+                            "b\napprox JVM RAM usage:\t" + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) +"b\n\n" +
+                    "Bot:\n" +
+                            "threads:\t" + ytChannelsThreads.size() + "\n" +
+                            threadsStates + "\ndiscord notifications channel:\t" + selectedDiscordTextChannel.getId() +
+                            ", " + selectedDiscordTextChannel.getName() + ", " + selectedDiscordTextChannel.getGuild() + "\ntracked youtube channels:\t" + BotConfig.getChannels() + ", "
+                            + BotConfig.getChannels().size() + "\n" +
+                            "JVM uptime:\t" + (ManagementFactory.getRuntimeMXBean().getUptime() / 1000L) + "s\n" + "```").queue();
             }
             case "set-notification-channel" -> {
                 if(!isOwner(event.getUser().getId())) {
@@ -114,8 +92,9 @@ public class Bot extends ListenerAdapter {
                     event.reply("You need to be the owner to execute that!").setEphemeral(true).queue();
                     return;
                 }
-                for(YoutubeChannel youtubeChannel : BotConfig.getChannels())
-                    checkForNewVideos(youtubeChannel);
+
+//                for(YoutubeChannel youtubeChannel : BotConfig.getChannels())
+//                    checkForNewVideos(youtubeChannel);
 
             }
             case "help" -> {
@@ -130,7 +109,7 @@ public class Bot extends ListenerAdapter {
         }
     }
 
-    public static void main(String[] args) throws IOException, LoginException {
+    public static void main(String[] args) throws IOException {
         BotConfig.createConfig();
         jda = JDABuilder.createDefault(BotConfig.getToken())
                 .enableIntents(GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_MEMBERS)
@@ -145,7 +124,7 @@ public class Bot extends ListenerAdapter {
         ).queue();
 
         for(YoutubeChannel youtubeChannel : BotConfig.getChannels()) {
-            ytChannelsThreads.add(new Thread(() -> newVideoCheckLoop(youtubeChannel)));
+            ytChannelsThreads.add(new Thread(() -> new Checker(youtubeChannel).checkForNewVideosInLoop()));
         }
         for(Thread thread : ytChannelsThreads)
             thread.start();

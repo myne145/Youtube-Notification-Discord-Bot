@@ -1,55 +1,59 @@
 package com.myne145.ytdiscordbot.youtube;
 
+import com.myne145.ytdiscordbot.Bot;
+import com.myne145.ytdiscordbot.config.BotConfig;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.*;
-import java.nio.file.Files;
 
 public class Checker {
-    private static JSONObject lastVideoFromPreviousCheck;
+    private JSONObject lastVideoFromPreviousCheck;
+    private final YoutubeChannel channelToCheck;
+
+    public Checker(YoutubeChannel channelToCheck) {
+        this.channelToCheck = channelToCheck;
+    }
 
     /**
-     * Reads content of the specified file.
-     * @param fileToRead file you want to read
-     * @return content of the file as String
-     * @throws IOException
+     * Determines whether the new video is a livestream.
+     * @return is video a livestream.
      */
-    public static String readFileString(File fileToRead) throws IOException {
-        StringBuilder fileToReadReader = new StringBuilder();
-        for(String fileLine : Files.readAllLines(fileToRead.toPath())) {
-            fileToReadReader.append(fileLine);
+    private boolean isLiveStream() {
+        if(lastVideoFromPreviousCheck.getJSONObject("snippet").has("liveBroadcastContent")) {
+            String type = lastVideoFromPreviousCheck.getJSONObject("snippet").getString("liveBroadcastContent");
+            return type.equals("live");
         }
-        return fileToReadReader.toString();
+        return false;
     }
 
     /**
      * Checks for new videos on a YouTube channel.
-     * @param youtubeChannel YouTube channel you want to check videos on.
      * @return if the channel has new videos.
      * @throws URISyntaxException
      * @throws IOException
      */
-    public static boolean hasNewVideos(YoutubeChannel youtubeChannel) throws URISyntaxException, IOException {
-//        URL requestURL =
-//                new URI("https://www.googleapis.com/youtube/v3/search?key=" +
-//                        BotConfig.API_KEY + "&channelId=" + BotConfig.CHANNELS.get(0).getId() + "&part=snippet,id&order=date&maxResults=20").toURL();
-//        HttpURLConnection urlConnection = (HttpURLConnection) requestURL.openConnection();
-//        urlConnection.setRequestMethod("GET");
-//
-//        StringBuilder result = new StringBuilder();
-//        try (BufferedReader reader = new BufferedReader(
-//                new InputStreamReader(urlConnection.getInputStream()))) {
-//            for (String line; (line = reader.readLine()) != null; ) {
-//                result.append(line);
-//            }
-//        }
-//        System.out.println(result);
-        String result = readFileString(new File("exampleLive.json"));
+    private boolean hasNewVideos() throws URISyntaxException, IOException {
+        URL requestURL =
+                new URI("https://www.googleapis.com/youtube/v3/search?key=" +
+                        BotConfig.getApiKey() + "&channelId=" + channelToCheck.id() + "&part=snippet,id&order=date&maxResults=20").toURL();
+        HttpURLConnection urlConnection = (HttpURLConnection) requestURL.openConnection();
+        urlConnection.setRequestMethod("GET");
 
-        JSONObject response = new JSONObject(result);
+        StringBuilder result = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(urlConnection.getInputStream()))) {
+            for (String line; (line = reader.readLine()) != null; ) {
+                result.append(line).append("\n");
+            }
+        }
+//        String result = BotConfig.readFileString(new File(channelToCheck.name() + ".json"));
+
+        JSONObject response = new JSONObject(result.toString());
         JSONArray videos = new JSONArray(response.getJSONArray("items"));
         JSONObject lastVideoFromCurrentCheck = videos.getJSONObject(0);
 
@@ -60,27 +64,39 @@ public class Checker {
                 .equals(lastVideoFromPreviousCheck.getJSONObject("id").getString("videoId"));
 
         lastVideoFromPreviousCheck = lastVideoFromCurrentCheck;
-//        System.out.println(areVideosTheSame);
         return !areVideosTheSame;
+    }
+
+
+    /**
+     * Calls {@link #hasNewVideos()} in a loop, every 15 minutes.
+     */
+    public void checkForNewVideosInLoop() {
+        while(true) {
+            try {
+                boolean tempNewVideos = hasNewVideos();
+                System.out.println(getYoutubeChannel().name() + "\t" + tempNewVideos);
+                if(tempNewVideos) {
+                    Bot.broadcastNewVideoMessage(isLiveStream(), this);
+                }
+                Thread.sleep(1000 * 60 * 15); //sleep for 15 minutes
+//                Thread.sleep(1000);
+            } catch (InterruptedException | URISyntaxException | IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+
+    public YoutubeChannel getYoutubeChannel() {
+        return channelToCheck;
     }
 
     /**
      * If there was a new video uploaded, gets its YouTube ID.
      * @return latest video's YouTube ID
      */
-    public static String getLatestUploadedVideoId() {
+    public String getLatestUploadedVideoId() {
         return lastVideoFromPreviousCheck.getJSONObject("id").getString("videoId");
-    }
-
-    /**
-     * Determines whether the new video is a livestream.
-     * @return is video a livestream.
-     */
-    public static boolean isLiveStream() {
-        if(lastVideoFromPreviousCheck.getJSONObject("snippet").has("liveBroadcastContent")) {
-            String type = lastVideoFromPreviousCheck.getJSONObject("snippet").getString("liveBroadcastContent");
-            return type.equals("live");
-        }
-        return false;
     }
 }
