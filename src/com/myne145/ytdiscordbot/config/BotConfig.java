@@ -40,6 +40,21 @@ public class BotConfig {
      * @throws IOException
      */
     public static void createConfig() throws IOException {
+        if(!CONFIG_FILE.exists()) {
+            if(!CONFIG_FILE.createNewFile()) {
+                System.out.println("Cannot create the config.json file.");
+                System.exit(1);
+            }
+        }
+        File lastYoutubeVideoDirectory = new File("last_youtube_videos");
+        if(!lastYoutubeVideoDirectory.exists()) {
+            if(!lastYoutubeVideoDirectory.createNewFile()) {
+                System.out.println("Cannot create the \"last_youtube_videos\" directory.");
+                System.exit(1);
+            }
+        }
+
+
         JSONObject config = new JSONObject(readFileString(CONFIG_FILE));
         token = config.getString("token");
         ownerUserId = config.getString("owner");
@@ -87,12 +102,12 @@ public class BotConfig {
         return ownerUserId;
     }
 
-    public static String getNewVideoMessage(YoutubeChannel youtubeChannel, String link) {
-        return newVideoMessage.replace("$CHANNEL", youtubeChannel.name()).replace("$VIDEO_LINK", link);
+    public static String getNewVideoMessage(YoutubeChannel youtubeChannel, String youtubeVideoID) {
+        return newVideoMessage.replace("$CHANNEL", youtubeChannel.name()).replace("$VIDEO_LINK", "https://www.youtube.com/watch?v=" + youtubeVideoID);
     }
 
-    public static String getLivestreamMessage(YoutubeChannel youtubeChannel, String link) {
-        return livestreamMessage.replace("$CHANNEL", youtubeChannel.name()).replace("$VIDEO_LINK", link);
+    public static String getLivestreamMessage(YoutubeChannel youtubeChannel, String youtubeVideoID) {
+        return livestreamMessage.replace("$CHANNEL", youtubeChannel.name()).replace("$VIDEO_LINK", "https://www.youtube.com/watch?v=" + youtubeVideoID);
     }
 
     public static String getToken() {

@@ -6,6 +6,8 @@ import com.myne145.ytdiscordbot.youtube.YoutubeChannel;
 import com.myne145.ytdiscordbot.youtube.YoutubeChannelChecker;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.channel.Channel;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -14,10 +16,12 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MarkdownUtil;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Bot extends ListenerAdapter {
     private static TextChannel selectedDiscordTextChannel;
@@ -37,14 +41,15 @@ public class Bot extends ListenerAdapter {
 
     public static void broadcastNewVideoMessage(boolean isLiveStream, YoutubeChannelChecker youtubeChannelChecker) {
         selectedDiscordTextChannel = jda.getTextChannelById(BotConfig.getNotificationsChannelID());
-        if(selectedDiscordTextChannel != null) {
-            if(!isLiveStream) {
-                selectedDiscordTextChannel.sendMessage(BotConfig.getNewVideoMessage(youtubeChannelChecker.getYoutubeChannel(),
-                        "https://www.youtube.com/watch?v=" + youtubeChannelChecker.getLatestUploadedVideoId())).queue();
-            } else {
-                selectedDiscordTextChannel.sendMessage(BotConfig.getLivestreamMessage(youtubeChannelChecker.getYoutubeChannel(),
-                        "https://www.youtube.com/watch?v=" + youtubeChannelChecker.getLatestUploadedVideoId())).queue();
-            }
+        if(selectedDiscordTextChannel == null)
+            return;
+
+        if(!isLiveStream) {
+            selectedDiscordTextChannel.sendMessage(BotConfig.getNewVideoMessage(youtubeChannelChecker.getYoutubeChannel(),
+                    youtubeChannelChecker.getLatestUploadedVideoId())).queue();
+        } else {
+            selectedDiscordTextChannel.sendMessage(BotConfig.getLivestreamMessage(youtubeChannelChecker.getYoutubeChannel(),
+                    youtubeChannelChecker.getLatestUploadedVideoId())).queue();
         }
     }
 
@@ -58,19 +63,22 @@ public class Bot extends ListenerAdapter {
                 for (Thread thread : ytChannelsThreads) {
                     threadsStates.append(thread.getName()).append("\t").append(thread.getState()).append("\n");
                 }
-                   event.getHook().sendMessage("```System:\n" +
-                            "OS:\t" + System.getProperty("os.name") + "\n" +
-                            "total RAM:\t" + Runtime.getRuntime().totalMemory() +
-                            "b\nfree RAM:\t" + Runtime.getRuntime().freeMemory() +
-                            "b\napprox JVM RAM usage:\t" + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) +"b\n\n" +
-                    "Bot:\n" +
-                            "threads:\t" + ytChannelsThreads.size() + "\n" +
-                            threadsStates + "\ndiscord notifications channel:\t" + selectedDiscordTextChannel.getId() +
-                            ", " + selectedDiscordTextChannel.getName() + ", " + selectedDiscordTextChannel.getGuild() + "\ntracked youtube channels:\t" + BotConfig.getChannels() + ", "
-                            + BotConfig.getChannels().size() + "\n" +
-                            "JVM uptime:\t" + (ManagementFactory.getRuntimeMXBean().getUptime() / 1000L) + "s\n" + "```").queue();
+                event.getHook().sendMessage("```System:\n" +
+                        "OS:\t" + System.getProperty("os.name") + "\n" +
+                        "total RAM:\t" + Runtime.getRuntime().totalMemory() +
+                        "b\nfree RAM:\t" + Runtime.getRuntime().freeMemory() +
+                        "b\napprox JVM RAM usage:\t" + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) +"b\n\n" +
+                "Bot:\n" +
+                       "last_youtube_videos file list:\t" + Arrays.asList(new File("last_youtube_videos").list()) +
+                        "\nchannel scan threads:\t" + ytChannelsThreads.size() + "\n" +
+                        threadsStates + "\ndiscord notifications channel:\t" + selectedDiscordTextChannel.getId() +
+                        ", " + selectedDiscordTextChannel.getName() + ", " + selectedDiscordTextChannel.getGuild() + "\ntracked youtube channels:\t" + BotConfig.getChannels() + ", "
+                        + BotConfig.getChannels().size() + "\n" +
+                        "JVM uptime:\t" + (ManagementFactory.getRuntimeMXBean().getUptime() / 1000L) + "s\n" + "```").queue();
             }
             case "set-notification-channel" -> {
+                Channel channel = event.getOption("channel").getAsChannel();
+
                 if(!isOwner(event.getUser().getId())) {
                     event.reply("You need to be the owner to execute that!").setEphemeral(true).queue();
                     return;
@@ -79,12 +87,17 @@ public class Bot extends ListenerAdapter {
                     event.reply("Specify the channel first.").queue(); //pointless null check
                     return;
                 }
+                if(channel.getType() == ChannelType.VOICE) {
+                    event.reply("Incorrect channel type! Please select a text channel.").setEphemeral(true).queue();
+                    return;
+                }
+
                 try {
-                    BotConfig.updateNotificationChannel(event.getOption("channel").getAsChannel().asTextChannel());
+                    BotConfig.updateNotificationChannel((TextChannel) channel);
                 } catch (IOException e) {
                     event.reply("Failed to change the notifications channel: " + e.getMessage()).queue();
                 }
-
+                event.reply("Successfully changed the notifications channel!").queue();
             }
             case "force-video-check" -> {
                 if(!isOwner(event.getUser().getId())) {
@@ -107,18 +120,16 @@ public class Bot extends ListenerAdapter {
                 if(!wereAnyVideosFound)
                     event.reply(MarkdownUtil.quoteBlock("No new videos found.\nNote: Spamming this command will deplete your API tokens, scheduled checks occur every 15 minutes.")).setEphemeral(true).queue();
                 else
-                    event.reply(MarkdownUtil.quoteBlock("New videos were found. \nNote: Spamming this command will deplete your API tokens, scheduled checks occur every 15 minutes.")).setEphemeral(true).queue();
+                    event.reply(MarkdownUtil.quoteBlock("New videos were found.\nNote: Spamming this command will deplete your API tokens, scheduled checks occur every 15 minutes.")).setEphemeral(true).queue();
 
             }
-            case "help" -> {
-                event.reply(MarkdownUtil.bold(event.getJDA().getSelfUser().getName()) + " commands:\n\n" +
-                        MarkdownUtil.bold("About:\n") +
-                        "`/print-debug-info` - prints debug information\n" +
-                        "`/help` - shows this message\n\n"+
-                        MarkdownUtil.bold("Admin:\n") +
-                        "`/set-notification-channel` - sets the channel for YouTube notifications.\n" +
-                        "`/force-video-check` - forces check for new videos on every tracked channels.").queue();
-            }
+            case "help" -> event.reply(MarkdownUtil.bold(event.getJDA().getSelfUser().getName()) + " commands:\n\n" +
+                    MarkdownUtil.bold("About:\n") +
+                    "`/print-debug-info` - prints debug information\n" +
+                    "`/help` - shows this message\n\n"+
+                    MarkdownUtil.bold("Admin:\n") +
+                    "`/set-notification-channel` - sets the channel for YouTube notifications.\n" +
+                    "`/force-video-check` - forces check for new videos on every tracked channels.").queue();
         }
     }
 
