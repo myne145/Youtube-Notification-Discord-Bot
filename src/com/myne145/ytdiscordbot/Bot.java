@@ -122,7 +122,7 @@ public class Bot extends ListenerAdapter {
         }
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
         BotConfig.createConfig();
         jda = JDABuilder.createDefault(BotConfig.getToken())
                 .enableIntents(GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_MEMBERS)
@@ -135,6 +135,9 @@ public class Bot extends ListenerAdapter {
                 Commands.slash("force-video-check", "Forces new videos check."),
                 Commands.slash("help", "Lists all the commands and their descriptions.")
         ).queue();
+
+        System.out.println("Waiting 5 seconds for the loading process to finish...");
+        Thread.sleep(5000);
 
         for(YoutubeChannel youtubeChannel : BotConfig.getChannels()) {
             YoutubeChannelChecker youtubeChannelChecker = new YoutubeChannelChecker(youtubeChannel);

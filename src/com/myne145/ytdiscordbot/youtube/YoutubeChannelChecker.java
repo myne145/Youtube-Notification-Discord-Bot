@@ -5,10 +5,7 @@ import com.myne145.ytdiscordbot.config.BotConfig;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.*;
 
 public class YoutubeChannelChecker {
@@ -57,13 +54,32 @@ public class YoutubeChannelChecker {
         JSONArray videos = new JSONArray(response.getJSONArray("items"));
         JSONObject lastVideoFromCurrentCheck = videos.getJSONObject(0);
 
-        if(lastVideoFromPreviousCheck == null) {
+        File lastYoutubeVideoFile = new File("last_youtube_videos/last_youtube_video_" + getYoutubeChannel().name() + ".json");
+        if(!lastYoutubeVideoFile.exists())
+            lastYoutubeVideoFile.createNewFile();
+
+        boolean isLastVideoJSONFileValid = true;
+        try {
+            new JSONObject(BotConfig.readFileString(lastYoutubeVideoFile));
+        } catch (Exception e) {
+            isLastVideoJSONFileValid = false;
+        }
+        System.out.println("Is JSON valid: " + isLastVideoJSONFileValid);
+
+        if(lastVideoFromPreviousCheck == null || !isLastVideoJSONFileValid) {
             lastVideoFromPreviousCheck = lastVideoFromCurrentCheck;
+        }
+        if(isLastVideoJSONFileValid) {
+            lastVideoFromPreviousCheck = new JSONObject(BotConfig.readFileString(lastYoutubeVideoFile));
         }
         boolean areVideosTheSame = lastVideoFromCurrentCheck.getJSONObject("id").getString("videoId")
                 .equals(lastVideoFromPreviousCheck.getJSONObject("id").getString("videoId"));
 
         lastVideoFromPreviousCheck = lastVideoFromCurrentCheck;
+        try(FileWriter writer = new FileWriter(lastYoutubeVideoFile)) {
+            writer.write(lastVideoFromCurrentCheck.toString(4));
+        }
+        System.out.println(!areVideosTheSame);
         return !areVideosTheSame;
     }
 
