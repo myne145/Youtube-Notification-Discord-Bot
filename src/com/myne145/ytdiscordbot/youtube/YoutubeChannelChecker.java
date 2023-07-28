@@ -50,8 +50,13 @@ public class YoutubeChannelChecker {
         }
 //        String result = BotConfig.readFileString(new File(channelToCheck.name() + ".json"));
 
+
         JSONObject response = new JSONObject(result.toString());
         JSONArray videos = new JSONArray(response.getJSONArray("items"));
+
+        if(videos.length() <= 0) {
+            return false; //channel has no videos uploaded
+        }
         JSONObject lastVideoFromCurrentCheck = videos.getJSONObject(0);
 
         File lastYoutubeVideoFile = new File("last_youtube_videos/last_youtube_video_" + getYoutubeChannel().name() + ".json");
@@ -64,7 +69,6 @@ public class YoutubeChannelChecker {
         } catch (Exception e) {
             isLastVideoJSONFileValid = false;
         }
-        System.out.println("Is JSON valid: " + isLastVideoJSONFileValid);
 
         if(lastVideoFromPreviousCheck == null || !isLastVideoJSONFileValid) {
             lastVideoFromPreviousCheck = lastVideoFromCurrentCheck;
@@ -79,7 +83,6 @@ public class YoutubeChannelChecker {
         try(FileWriter writer = new FileWriter(lastYoutubeVideoFile)) {
             writer.write(lastVideoFromCurrentCheck.toString(4));
         }
-        System.out.println(!areVideosTheSame);
         return !areVideosTheSame;
     }
 

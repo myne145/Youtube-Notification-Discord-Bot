@@ -48,7 +48,7 @@ public class BotConfig {
         }
         File lastYoutubeVideoDirectory = new File("last_youtube_videos");
         if(!lastYoutubeVideoDirectory.exists()) {
-            if(!lastYoutubeVideoDirectory.createNewFile()) {
+            if(!lastYoutubeVideoDirectory.mkdir()) {
                 System.out.println("Cannot create the \"last_youtube_videos\" directory.");
                 System.exit(1);
             }
