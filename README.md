@@ -10,6 +10,7 @@
 - Auto updater.
 - Support for multiple servers.
 - Customizable delay between checks.
+- More commands to change config values.
 
 ## Setup:
 1. Install java 17 or newer.
