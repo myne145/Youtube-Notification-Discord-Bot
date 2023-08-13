@@ -16,7 +16,6 @@
 2. Download the jar file from the [latest release](https://github.com/myne145/Youtube-Notification-Bot-Discord/releases/latest)
 3. Create a config file **config.json**.
 4. Fill it in with: 
-<br>
 ```
 {
     "owner": "DISCORD_OWNER_USER_ID",
