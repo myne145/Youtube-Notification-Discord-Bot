@@ -4,16 +4,15 @@ Discord bot that notifies members about a new YouTube video being posted.<br>
 Coded in Java using the [JDA library](https://github.com/discord-jda/JDA)
 
 ## Features
-- Check for multiple YouTube channel at once.
-- Customizable notification messages.
-- Customizable notification messages.
-- Custom Discord satus.
+- Support for multiple channels.
+- Custom notification messages.
+- Custom Discord status.
 
 
 ## TODO:
 - Auto updater.
 - Support for multiple servers.
-- Customizable delay between checks.
+- Custom check interval.
 - More commands to change config values.
 
 ## Setup:
@@ -44,8 +43,8 @@ Coded in Java using the [JDA library](https://github.com/discord-jda/JDA)
 }
 ```
 > Config messages variables:<br>
-> **$CHANNEL** - channel link<br>
-> **$VIDEO_LINK** - link to a video or a livestream<br>
+> **$CHANNEL** - YouTube channel link<br>
+> **$VIDEO_LINK** - link to a YouTube video or a livestream<br>
 5. Launch the jar file with:
 ```
 java -jar <file_name>.jar &
