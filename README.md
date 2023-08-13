@@ -38,4 +38,11 @@
     "token": "YOUR_DISCORD_TOKEN"
 }
 ```
-
+> Config messages variables:<br>
+> **$CHANNEL** - channel link<br>
+> **$VIDEO_LINK** - link to a video or a livestream<br>
+5. Launch the jar file with:
+```
+java -jar <file_name>.jar &
+```
+> & detaches the JVM from the terminal window, allowing you to close it.
