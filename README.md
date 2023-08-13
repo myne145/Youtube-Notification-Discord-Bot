@@ -1,7 +1,7 @@
 # Youtube-Notification-Bot-Discord
 
 Discord bot that notifies members about a new YouTube video being posted.<br>
-Coded in Java using the [JDA library](https://github.com/discord-jda/JDA)
+Coded in Java using the [JDA library](https://github.com/discord-jda/JDA).
 
 ## Features
 - Support for multiple channels.
@@ -16,9 +16,9 @@ Coded in Java using the [JDA library](https://github.com/discord-jda/JDA)
 - More commands to change config values.
 
 ## Setup:
-1. Install java 17 or newer.
+1. Install Java 17 or newer
 2. Download the jar file from the [latest release](https://github.com/myne145/Youtube-Notification-Bot-Discord/releases/latest)
-3. Create a config file **config.json**.
+3. Create a config file **config.json**
 4. Fill it in with: 
 ```
 {
