@@ -6,6 +6,7 @@ import com.myne145.ytdiscordbot.youtube.YoutubeChannel;
 import com.myne145.ytdiscordbot.youtube.YoutubeChannelChecker;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.channel.Channel;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -139,6 +140,7 @@ public class Bot extends ListenerAdapter {
                 .enableIntents(GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_MEMBERS)
                 .addEventListeners(new Bot())
                 .build();
+        jda.getPresence().setPresence(Activity.playing("Loading..."), true);
         jda.updateCommands().addCommands(
                 Commands.slash("print-debug-info", "Prints debug information."),
                 Commands.slash("set-notification-channel", "Sets specified channel as the default one for YT notifications.")
@@ -149,6 +151,13 @@ public class Bot extends ListenerAdapter {
 
         System.out.println("Waiting 5 seconds for the loading process to finish...");
         Thread.sleep(5000);
+
+        String activityType = BotConfig.getActivityType();
+        switch (activityType) {
+            case "WATCHING" -> jda.getPresence().setPresence(Activity.watching(BotConfig.getActivityText()), true);
+            case "LISTENING" -> jda.getPresence().setPresence(Activity.listening(BotConfig.getActivityText()), true);
+            default -> jda.getPresence().setPresence(Activity.playing(BotConfig.getActivityText()), true);
+        }
 
         for(YoutubeChannel youtubeChannel : BotConfig.getChannels()) {
             YoutubeChannelChecker youtubeChannelChecker = new YoutubeChannelChecker(youtubeChannel);

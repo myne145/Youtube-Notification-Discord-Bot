@@ -20,6 +20,8 @@ public class BotConfig {
     private static String newVideoMessage;
     private static String livestreamMessage;
     private static String token;
+    private static String activityText;
+    private static String activityType;
 
     /**
      * Reads content of the specified file.
@@ -60,6 +62,8 @@ public class BotConfig {
         ownerUserId = config.getString("owner");
         apiKey = config.getString("youtube_api_key");
         notificationsChannelID = config.getString("notifications_channel_id");
+        activityText = config.getString("status_message");
+        activityType = config.getString("status_type");
 
         JSONArray channels = new JSONArray(config.getJSONArray("youtube_channels"));
         for (int i = 0; i < channels.length(); i++) {
@@ -112,5 +116,13 @@ public class BotConfig {
 
     public static String getToken() {
         return token;
+    }
+
+    public static String getActivityText() {
+        return activityText;
+    }
+
+    public static String getActivityType() {
+        return activityType;
     }
 }
