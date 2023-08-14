@@ -28,7 +28,7 @@ Coded in Java using the [JDA library](https://github.com/discord-jda/JDA).
         "new_video": "$CHANNEL (user's channel) posted a new video - $VIDEO_LINK (link to the video)",
         "livestream": "$CHANNEL (user's channel) posted a new video - $VIDEO_LINK (link to the video)"
     },
-    "youtube_api_key": "YOUT_YOUTUBE_API_KEY",
+    "youtube_api_key": "YOUR_YOUTUBE_API_KEY",
     "youtube_channels": [
         {
             "name": "CHANNEL1_NAME",
