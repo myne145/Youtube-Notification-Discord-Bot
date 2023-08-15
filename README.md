@@ -40,11 +40,11 @@ Coded in Java using the [JDA library](https://github.com/discord-jda/JDA).
     "youtube_channels": [
         {
             "name": "CHANNEL1_NAME",
-            "id": "CHANNEL1_ID"
+            "id": "CHANNEL1_ID (https://www.youtube.com/channel/THE_ID_PART)"
         },
         {
             "name": "CHANNEL2_NAME",
-            "id": "CHANNEL2_ID"
+            "id": "CHANNEL2_ID (https://www.youtube.com/channel/THE_ID_PART)"
         }
     ],
     "status_type": "PLAYING / WATCHING / LISTENING",
