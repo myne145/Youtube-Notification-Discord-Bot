@@ -16,6 +16,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MarkdownUtil;
+import org.json.JSONException;
 
 import java.io.File;
 import java.io.IOException;
@@ -135,7 +136,12 @@ public class Bot extends ListenerAdapter {
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        BotConfig.createConfig();
+        try {
+            BotConfig.createConfig();
+        } catch (Exception e) {
+            throw new JSONException("Cannot parse config file - Follow the instructions at https://github.com/myne145/Youtube-Notification-Discord-Bot#local to set it up properly.");
+        }
+
         jda = JDABuilder.createDefault(BotConfig.getToken())
                 .enableIntents(GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_MEMBERS)
                 .addEventListeners(new Bot())

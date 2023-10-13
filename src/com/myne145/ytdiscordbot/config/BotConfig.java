@@ -3,6 +3,7 @@ package com.myne145.ytdiscordbot.config;
 import com.myne145.ytdiscordbot.youtube.YoutubeChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -56,6 +57,11 @@ public class BotConfig {
             }
         }
 
+        try {
+            new JSONObject(readFileString(CONFIG_FILE));
+        } catch (Exception e) {
+            throw new JSONException("The config file is not a valid JSON. Follow the instructions at https://github.com/myne145/Youtube-Notification-Discord-Bot to set the bot up.");
+        }
 
         JSONObject config = new JSONObject(readFileString(CONFIG_FILE));
         token = config.getString("token");
