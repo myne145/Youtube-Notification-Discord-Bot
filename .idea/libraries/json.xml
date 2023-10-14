@@ -4,9 +4,7 @@
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/lib/json-20230618.jar!/" />
     </CLASSES>
-    <JAVADOC>
-      <root url="jar://$PROJECT_DIR$/lib/json-20230618-javadoc.jar!/" />
-    </JAVADOC>
+    <JAVADOC />
     <SOURCES />
   </library>
 </component>

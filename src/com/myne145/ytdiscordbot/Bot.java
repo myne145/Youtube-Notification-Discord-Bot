@@ -167,7 +167,14 @@ public class Bot extends ListenerAdapter {
 
         for(YoutubeChannel youtubeChannel : BotConfig.getChannels()) {
             YoutubeChannelChecker youtubeChannelChecker = new YoutubeChannelChecker(youtubeChannel);
-            ytChannelsThreads.add(new Thread(youtubeChannelChecker::checkForNewVideosInLoop));
+            ytChannelsThreads.add(new Thread(() -> {
+                try {
+                    youtubeChannelChecker.checkForNewVideosInLoop();
+                } catch (InterruptedException ignored) {
+
+                }
+            }
+            ));
             youtubeChannelsCheckers.add(youtubeChannelChecker);
         }
         for(Thread thread : ytChannelsThreads)

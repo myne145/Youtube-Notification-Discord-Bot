@@ -23,6 +23,7 @@ public class BotConfig {
     private static String token;
     private static String activityText;
     private static String activityType;
+    private static int checkIntervalMilliSeconds;
 
     /**
      * Reads content of the specified file.
@@ -70,6 +71,11 @@ public class BotConfig {
         notificationsChannelID = config.getString("notifications_channel_id");
         activityText = config.getString("status_message");
         activityType = config.getString("status_type");
+        if(!config.keySet().contains("check_interval_seconds")) {
+            checkIntervalMilliSeconds = 1000 * 60 * 15; //default: 15 minutes
+        } else {
+            checkIntervalMilliSeconds = 1000 * config.getInt("check_interval_seconds");
+        }
 
         JSONArray channels = new JSONArray(config.getJSONArray("youtube_channels"));
         for (int i = 0; i < channels.length(); i++) {
@@ -130,5 +136,9 @@ public class BotConfig {
 
     public static String getActivityType() {
         return activityType;
+    }
+
+    public static int getCheckIntervalInMilliSeconds() {
+        return checkIntervalMilliSeconds;
     }
 }

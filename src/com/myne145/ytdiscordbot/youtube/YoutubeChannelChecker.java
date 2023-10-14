@@ -90,17 +90,20 @@ public class YoutubeChannelChecker {
     /**
      * Calls {@link #hasNewVideos()} in a loop, every 15 minutes.
      */
-    public void checkForNewVideosInLoop() {
+    public void checkForNewVideosInLoop() throws InterruptedException {
         while(true) {
             try {
                 boolean tempNewVideos = hasNewVideos();
                 if(tempNewVideos) {
                     Bot.broadcastNewVideoMessage(isLiveStream(), this);
                 }
-                Thread.sleep(1000 * 60 * 15); //sleep for 15 minutes
+                Thread.sleep(BotConfig.getCheckIntervalInMilliSeconds()); //sleep for time specified in config
 //                Thread.sleep(1000);
-            } catch (InterruptedException | URISyntaxException | IOException e) {
-                throw new RuntimeException(e);
+            } catch (IOException | URISyntaxException e) {
+                System.out.println("Cannot connect to Youtube's API, response code 403");
+                Thread.sleep(BotConfig.getCheckIntervalInMilliSeconds()); //great.
+            } catch (InterruptedException ignored) {
+
             }
         }
     }
