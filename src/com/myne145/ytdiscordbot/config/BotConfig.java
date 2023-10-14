@@ -102,6 +102,16 @@ public class BotConfig {
         }
     }
 
+    public static void updateCheckInterval(int timeSeconds) throws IOException {
+        JSONObject object = new JSONObject(readFileString(CONFIG_FILE));
+        object.put("check_interval_seconds", timeSeconds);
+        checkIntervalMilliSeconds = timeSeconds * 1000;
+
+        try(FileWriter writer = new FileWriter(CONFIG_FILE)) {
+            writer.write(object.toString(4));
+        }
+    }
+
     public static String getApiKey() {
         return apiKey;
     }

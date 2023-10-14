@@ -58,6 +58,14 @@ public class Bot extends ListenerAdapter {
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
         switch (event.getName()) {
+            case "help" -> event.reply(MarkdownUtil.bold(event.getJDA().getSelfUser().getName()) + " commands:\n\n" +
+                    MarkdownUtil.bold("About:\n") +
+                    "`/print-debug-info` - prints debug information\n" +
+                    "`/help` - shows this message\n\n"+
+                    MarkdownUtil.bold("Admin:\n") +
+                    "`/set-notification-channel` - sets the channel for YouTube notifications.\n" +
+                    "`/force-video-check` - forces check for new videos on every tracked channels.").queue();
+
             case "print-debug-info" -> {
                 event.deferReply().queue();
                 selectedDiscordTextChannel = jda.getTextChannelById(BotConfig.getNotificationsChannelID());
@@ -119,23 +127,37 @@ public class Bot extends ListenerAdapter {
                         broadcastNewVideoMessage(checker.isLiveStream(), checker);
                     }
                 }
-                if(!wereAnyVideosFound)
+                if(!wereAnyVideosFound) //TODO: update this message
                     event.reply(MarkdownUtil.quoteBlock("No new videos found.\nNote: Spamming this command will deplete your API tokens, scheduled checks occur every 15 minutes.")).setEphemeral(true).queue();
                 else
                     event.reply(MarkdownUtil.quoteBlock("New videos were found.\nNote: Spamming this command will deplete your API tokens, scheduled checks occur every 15 minutes.")).setEphemeral(true).queue();
 
             }
-            case "help" -> event.reply(MarkdownUtil.bold(event.getJDA().getSelfUser().getName()) + " commands:\n\n" +
-                    MarkdownUtil.bold("About:\n") +
-                    "`/print-debug-info` - prints debug information\n" +
-                    "`/help` - shows this message\n\n"+
-                    MarkdownUtil.bold("Admin:\n") +
-                    "`/set-notification-channel` - sets the channel for YouTube notifications.\n" +
-                    "`/force-video-check` - forces check for new videos on every tracked channels.").queue();
+            case "set-check-interval" -> {
+                if(!isOwner(event.getUser().getId())) {
+                    event.reply("You need to be the owner to execute that!").setEphemeral(true).queue();
+                    return;
+                }
+
+                if(event.getOption("time_seconds") == null ||
+                        event.getOption("time_seconds").getAsDouble() <= 0 ||
+                        event.getOption("time_seconds").getAsDouble() % 1 != 0) { //only works with double
+                    event.reply("Invalid value!").setEphemeral(true).queue();
+                    return;
+                }
+                try {
+                    BotConfig.updateCheckInterval((int)event.getOption("time_seconds").getAsDouble());
+                } catch (IOException e) {
+                    event.reply("Cannot update the value in the config file." + e.getMessage()).setEphemeral(true).queue();
+                    return;
+                }
+                event.reply("Done! The changes will take place after the next check.").setEphemeral(true).queue();
+            }
+
         }
     }
 
-    public static void main(String[] args) throws IOException, InterruptedException {
+    public static void main(String[] args) throws InterruptedException {
         try {
             BotConfig.createConfig();
         } catch (Exception e) {
@@ -149,10 +171,14 @@ public class Bot extends ListenerAdapter {
         jda.getPresence().setPresence(Activity.playing("Loading..."), true);
         jda.updateCommands().addCommands(
                 Commands.slash("print-debug-info", "Prints debug information."),
+                Commands.slash("force-video-check", "Forces new videos check."),
+                Commands.slash("help", "Lists all the commands and their descriptions."),
+
                 Commands.slash("set-notification-channel", "Sets specified channel as the default one for YT notifications.")
                         .addOption(OptionType.CHANNEL, "channel", "Channel you want the notifications to be in.", true),
-                Commands.slash("force-video-check", "Forces new videos check."),
-                Commands.slash("help", "Lists all the commands and their descriptions.")
+
+                Commands.slash("set-check-interval", "Sets the channel check interval.")
+                        .addOption(OptionType.NUMBER, "time_seconds", "The check interval in seconds.", true)
         ).queue();
 
         System.out.println("Waiting 5 seconds for the loading process to finish...");
