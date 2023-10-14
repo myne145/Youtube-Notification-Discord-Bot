@@ -11,7 +11,7 @@ Coded in Java using the [JDA library](https://github.com/discord-jda/JDA).
 
 ## TODO:
 - Auto updater.
-- Support for multiple servers.
+- Support for multiple Discord servers.
 - Custom check interval.
 - More commands to change config values.
 
