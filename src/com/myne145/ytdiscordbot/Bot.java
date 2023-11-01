@@ -14,6 +14,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MarkdownUtil;
 import org.json.JSONException;
@@ -140,13 +141,12 @@ public class Bot extends ListenerAdapter {
                 }
 
                 if(event.getOption("time_seconds") == null ||
-                        event.getOption("time_seconds").getAsDouble() <= 0 ||
-                        event.getOption("time_seconds").getAsDouble() % 1 != 0) { //only works with double
+                        event.getOption("time_seconds").getAsInt() <= 0) {
                     event.reply("Invalid value!").setEphemeral(true).queue();
                     return;
                 }
                 try {
-                    BotConfig.updateCheckInterval((int)event.getOption("time_seconds").getAsDouble());
+                    BotConfig.updateCheckInterval(event.getOption("time_seconds").getAsInt());
                 } catch (IOException e) {
                     event.reply("Cannot update the value in the config file." + e.getMessage()).setEphemeral(true).queue();
                     return;
@@ -178,7 +178,7 @@ public class Bot extends ListenerAdapter {
                         .addOption(OptionType.CHANNEL, "channel", "Channel you want the notifications to be in.", true),
 
                 Commands.slash("set-check-interval", "Sets the channel check interval.")
-                        .addOption(OptionType.NUMBER, "time_seconds", "The check interval in seconds.", true)
+                        .addOption(OptionType.INTEGER, "time_seconds", "The check interval in seconds.", true)
         ).queue();
 
         System.out.println("Waiting 5 seconds for the loading process to finish...");

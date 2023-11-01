@@ -73,6 +73,7 @@ public class BotConfig {
         activityType = config.getString("status_type");
         if(!config.keySet().contains("check_interval_seconds")) {
             checkIntervalMilliSeconds = 1000 * 60 * 15; //default: 15 minutes
+            updateCheckInterval(1000 * 60 * 15);
         } else {
             checkIntervalMilliSeconds = 1000 * config.getInt("check_interval_seconds");
         }
