@@ -164,6 +164,12 @@ public class Bot extends ListenerAdapter {
             throw new JSONException("Cannot parse config file - Follow the instructions at https://github.com/myne145/Youtube-Notification-Discord-Bot#local to set it up properly.");
         }
 
+        SubcommandData checkInterval = new SubcommandData("set-check-interval", "Sets the channel check interval.").
+                addOption(OptionType.INTEGER, "time_seconds", "The check interval in seconds.", true);
+
+        SubcommandData addChannel = new SubcommandData("add", "Adds a channel.").
+                addOption(OptionType.STRING, "channel_link", "The channel link.", true);
+
         jda = JDABuilder.createDefault(BotConfig.getToken())
                 .enableIntents(GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_MEMBERS)
                 .addEventListeners(new Bot())
@@ -177,8 +183,9 @@ public class Bot extends ListenerAdapter {
                 Commands.slash("set-notification-channel", "Sets specified channel as the default one for YT notifications.")
                         .addOption(OptionType.CHANNEL, "channel", "Channel you want the notifications to be in.", true),
 
-                Commands.slash("set-check-interval", "Sets the channel check interval.")
-                        .addOption(OptionType.INTEGER, "time_seconds", "The check interval in seconds.", true)
+                Commands.slash("channel", "Youtube channel commands.").
+                        addSubcommands(checkInterval).
+                        addSubcommands(addChannel)
         ).queue();
 
         System.out.println("Waiting 5 seconds for the loading process to finish...");
